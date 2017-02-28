@@ -24,15 +24,30 @@ use yii\web\IdentityInterface;
 class User extends ActiveRecord implements IdentityInterface
 {
     const STATUS_DELETED = 0;
-    const STATUS_ACTIVE = 10;
+    const STATUS_MODERATED = 1;
+    const STATUS_ACTIVE = 2;
 
+    const ROLE_ADMIN = 1;
+    const ROLE_CHATER = 2;
 
     /**
      * @inheritdoc
      */
     public static function tableName()
     {
-        return '{{%user}}';
+        return 'user';
+    }
+
+    /**
+     * @return array
+     */
+    public static function getStatusesArray()
+    {
+        return [
+            self::STATUS_DELETED => 'Удален',
+            self::STATUS_MODERATED => 'На модерации',
+            self::STATUS_ACTIVE => 'Активный'
+        ];
     }
 
     /**
@@ -51,9 +66,47 @@ class User extends ActiveRecord implements IdentityInterface
     public function rules()
     {
         return [
-            ['status', 'default', 'value' => self::STATUS_ACTIVE],
-            ['status', 'in', 'range' => [self::STATUS_ACTIVE, self::STATUS_DELETED]],
+            ['status', 'default', 'value' => self::STATUS_MODERATED],
+            ['status', 'in', 'range' => array_keys(self::getStatusesArray())],
         ];
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public static function getRoles()
+    {
+        return [
+            self::ROLE_ADMIN => 'Админ',
+            self::ROLE_CHATER => 'Чатер'
+        ];
+    }
+
+    /**
+     * @param $role_id
+     * @return bool
+     */
+    public static function isAdmin($role_id)
+    {
+        return $role_id == self::ROLE_ADMIN;
+    }
+
+
+    /**
+     * @param $role_id
+     * @return bool
+     */
+    public static function isChater($role_id)
+    {
+        return $role_id == self::ROLE_CHATER;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function getRole()
+    {
+        return $this->role_id;
     }
 
     /**
@@ -113,7 +166,7 @@ class User extends ActiveRecord implements IdentityInterface
             return false;
         }
 
-        $timestamp = (int) substr($token, strrpos($token, '_') + 1);
+        $timestamp = (int)substr($token, strrpos($token, '_') + 1);
         $expire = Yii::$app->params['user.passwordResetTokenExpire'];
         return $timestamp + $expire >= time();
     }
