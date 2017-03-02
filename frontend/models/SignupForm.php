@@ -12,7 +12,7 @@ class SignupForm extends Model
     public $username;
     public $email;
     public $password;
-
+    public $verifyCode;
 
     /**
      * @inheritdoc
@@ -22,17 +22,20 @@ class SignupForm extends Model
         return [
             ['username', 'trim'],
             ['username', 'required'],
-            ['username', 'unique', 'targetClass' => '\common\models\User', 'message' => 'This username has already been taken.'],
+            ['username', 'match', 'pattern' => '#^[\w_-]+$#i'],
+            ['username', 'unique', 'targetClass' => User::className(), 'message' => 'This username has already been taken.'],
             ['username', 'string', 'min' => 2, 'max' => 255],
 
             ['email', 'trim'],
             ['email', 'required'],
             ['email', 'email'],
             ['email', 'string', 'max' => 255],
-            ['email', 'unique', 'targetClass' => '\common\models\User', 'message' => 'This email address has already been taken.'],
+            ['email', 'unique', 'targetClass' => User::className(), 'message' => 'This email address has already been taken.'],
 
             ['password', 'required'],
             ['password', 'string', 'min' => 6],
+
+            ['verifyCode', 'captcha'],
         ];
     }
 
@@ -49,6 +52,8 @@ class SignupForm extends Model
         
         $user = new User();
         $user->username = $this->username;
+        $user->status = User::STATUS_ACTIVE;
+        $user->role_id = User::ROLE_CHATER;
         $user->email = $this->email;
         $user->setPassword($this->password);
         $user->generateAuthKey();

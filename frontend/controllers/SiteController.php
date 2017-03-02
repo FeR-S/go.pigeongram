@@ -1,6 +1,7 @@
 <?php
 namespace frontend\controllers;
 
+use common\models\Buddy;
 use Yii;
 use yii\base\InvalidParamException;
 use yii\web\BadRequestHttpException;
@@ -26,15 +27,15 @@ class SiteController extends Controller
         return [
             'access' => [
                 'class' => AccessControl::className(),
-                'only' => ['logout', 'signup'],
+                'only' => ['logout', 'signup', 'login'],
                 'rules' => [
                     [
-                        'actions' => ['signup'],
+                        'actions' => ['signup', 'login'],
                         'allow' => true,
                         'roles' => ['?'],
                     ],
                     [
-                        'actions' => ['logout'],
+                        'actions' => ['logout', 'homepage'],
                         'allow' => true,
                         'roles' => ['@'],
                     ],
@@ -42,9 +43,9 @@ class SiteController extends Controller
             ],
             'verbs' => [
                 'class' => VerbFilter::className(),
-                'actions' => [
-                    'logout' => ['post'],
-                ],
+//                'actions' => [
+//                    'logout' => ['post'],
+//                ],
             ],
         ];
     }
@@ -72,7 +73,36 @@ class SiteController extends Controller
      */
     public function actionIndex()
     {
-        return $this->render('index');
+        if (!\Yii::$app->user->isGuest) {
+            Yii::$app->homeUrl = '/site/homepage';
+            return $this->goHome();
+        } else {
+            return $this->redirect('/site/login');
+        }
+    }
+
+
+    /**
+     * @return string|\yii\web\Response
+     */
+    public function actionHomepage(){
+        if (!\Yii::$app->user->isGuest) {
+            $this->layout   = 'homepage';
+//            $bid            = new Bid();
+//            $buddies        = new Buddy();
+//            $message        = new Message();
+//            $chat_member    = new ChatMember();
+            return $this->render('homepage', [
+//                'inbox_bids'    => $bid::getInboxBids(),
+//                'outbox_bids'   => $bid::getOutboxBids(),
+//                'message'       => $message,
+//                'chat_member'   => $chat_member->getChats()['activeDataProvider'],
+//                'buddies'       => Buddy::getBuddies(),
+//                'buddies_2'     => $buddies->getBuddy()['arrayDataProvider'],
+            ]);
+        } else {
+            return $this->goBack();
+        }
     }
 
     /**
@@ -82,18 +112,21 @@ class SiteController extends Controller
      */
     public function actionLogin()
     {
+        $this->layout = 'site_pages';
+
         if (!Yii::$app->user->isGuest) {
             return $this->goHome();
         }
 
         $model = new LoginForm();
         if ($model->load(Yii::$app->request->post()) && $model->login()) {
-            return $this->goBack();
-        } else {
-            return $this->render('login', [
-                'model' => $model,
-            ]);
+            Yii::$app->homeUrl = '/site/homepage';
+            return $this->goHome();
         }
+
+        return $this->render('login', [
+            'model' => $model,
+        ]);
     }
 
     /**
@@ -148,6 +181,7 @@ class SiteController extends Controller
      */
     public function actionSignup()
     {
+        $this->layout = 'site_pages';
         $model = new SignupForm();
         if ($model->load(Yii::$app->request->post())) {
             if ($user = $model->signup()) {

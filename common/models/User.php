@@ -1,6 +1,7 @@
 <?php
 namespace common\models;
 
+use common\components\CacheActiveRecord;
 use Yii;
 use yii\base\NotSupportedException;
 use yii\behaviors\TimestampBehavior;
@@ -21,7 +22,7 @@ use yii\web\IdentityInterface;
  * @property integer $updated_at
  * @property string $password write-only password
  */
-class User extends ActiveRecord implements IdentityInterface
+class User extends \common\components\CacheActiveRecord implements IdentityInterface
 {
     const STATUS_DELETED = 0;
     const STATUS_MODERATED = 1;
@@ -66,7 +67,8 @@ class User extends ActiveRecord implements IdentityInterface
     public function rules()
     {
         return [
-            ['status', 'default', 'value' => self::STATUS_MODERATED],
+            [['id', 'username'], 'safe'],
+            ['status', 'default', 'value' => self::STATUS_ACTIVE],
             ['status', 'in', 'range' => array_keys(self::getStatusesArray())],
         ];
     }
@@ -90,7 +92,6 @@ class User extends ActiveRecord implements IdentityInterface
     {
         return $role_id == self::ROLE_ADMIN;
     }
-
 
     /**
      * @param $role_id
@@ -133,7 +134,10 @@ class User extends ActiveRecord implements IdentityInterface
      */
     public static function findByUsername($username)
     {
-        return static::findOne(['username' => $username, 'status' => self::STATUS_ACTIVE]);
+        return static::findOne([
+            'username' => $username,
+            'status' => self::STATUS_ACTIVE
+        ]);
     }
 
     /**
@@ -185,6 +189,16 @@ class User extends ActiveRecord implements IdentityInterface
     public function getAuthKey()
     {
         return $this->auth_key;
+    }
+
+    /**
+     * @return string
+     */
+    public function getUserIcon()
+    {
+        $F = mb_strtoupper($this->username[0]);
+        $n = mb_strtolower($this->username[3]);
+        return '<div class="user-icon-container"><div class="user-icon-inner">' . $F . $n . '</div></div>';
     }
 
     /**
