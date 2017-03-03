@@ -81,13 +81,13 @@ class SiteController extends Controller
         }
     }
 
-
     /**
      * @return string|\yii\web\Response
      */
-    public function actionHomepage(){
+    public function actionHomepage()
+    {
         if (!\Yii::$app->user->isGuest) {
-            $this->layout   = 'homepage';
+            $this->layout = 'homepage';
 //            $bid            = new Bid();
 //            $buddies        = new Buddy();
 //            $message        = new Message();

@@ -67,7 +67,7 @@ class User extends \common\components\CacheActiveRecord implements IdentityInter
     public function rules()
     {
         return [
-            [['id', 'username'], 'safe'],
+            [['id', 'username', 'password_hash'], 'safe'],
             ['status', 'default', 'value' => self::STATUS_ACTIVE],
             ['status', 'in', 'range' => array_keys(self::getStatusesArray())],
         ];
