@@ -15,7 +15,7 @@
         ];
 
         if ($action['action_id'] == \common\models\ActionsWithUser::ACTION_CREATE_THE_CHAT_ID) {
-            $options['data-target'] = 'modal-' . $action['action_id'];
+            $options['data-target'] = '#modal-' . $action['action_id'];
             $options['data-toggle'] = 'modal';
         }
 

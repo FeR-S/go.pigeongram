@@ -93,15 +93,21 @@ class Buddy extends ActiveRecord
         }
     }
 
+
     /**
-     * @return ActiveDataProvider
+     * @param bool $array
+     * @return array|ActiveDataProvider|ActiveRecord[]
      */
-    public static function getBuddies()
+    public static function getBuddies($array = false)
     {
         $query = Buddy::find()
             ->with(['user'])
             ->where(['buddy_1' => Yii::$app->user->getId()])
             ->orderBy(['id' => SORT_DESC]);
+
+        if ($array) {
+            return $query->all();
+        }
 
         $activeDataProvider = new ActiveDataProvider([
             'query' => $query,

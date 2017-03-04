@@ -21,8 +21,6 @@ use yii\helpers\ArrayHelper;
 class ChatMember extends ActiveRecord
 {
 
-    public $chat_members = [];
-
     /**
      * @inheritdoc
      */
@@ -53,7 +51,7 @@ class ChatMember extends ActiveRecord
     public function rules()
     {
         return [
-            [['created_at', 'chat_id', 'user_id', 'chat_members'], 'required'],
+            [['created_at', 'chat_id', 'user_id'], 'required'],
             [['chat_id', 'user_id'], 'integer']
         ];
     }
@@ -68,35 +66,7 @@ class ChatMember extends ActiveRecord
             'created_at' => 'Created At',
             'chat_id' => 'Chat ID',
             'user_id' => 'User ID',
-            'chat_members' => 'Chat Members'
         ];
-    }
-
-    /**
-     * @return array
-     */
-    public static function getChats()
-    {
-        $query = ChatMember::find()
-            ->with(['chat'])
-            ->where(['user_id' => Yii::$app->user->getId()]);
-
-        $activeDataProvider = new ActiveDataProvider([
-            'query' => $query,
-            'sort' => [
-                'defaultOrder' => [
-                    'created_at' => SORT_DESC
-                ]
-            ]
-        ]);
-
-        $arrayDataProvider = ArrayHelper::map($query->all(), 'chat.id', 'chat.id');
-
-        return [
-            'activeDataProvider' => $activeDataProvider,
-            'arrayDataProvider' => $arrayDataProvider,
-        ];
-
     }
 
     /**

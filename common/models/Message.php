@@ -1,10 +1,9 @@
 <?php
 
-namespace app\models;
+namespace common\models;
 
 use Yii;
 use yii\data\ActiveDataProvider;
-use app\models\User;
 use yii\helpers\ArrayHelper;
 
 
@@ -97,10 +96,10 @@ class Message extends \yii\db\ActiveRecord
     /**
      * @return \yii\db\ActiveQuery
      */
-    public function getAttachments()
-    {
-        return $this->hasOne(Attachment::className(), ['id' => 'attachment_id']);
-    }
+//    public function getAttachments()
+//    {
+//        return $this->hasOne(Attachment::className(), ['id' => 'attachment_id']);
+//    }
 
     /**
      * @return mixed
@@ -114,9 +113,9 @@ class Message extends \yii\db\ActiveRecord
      * @param $chat_id
      * @return array|\yii\db\ActiveRecord[]
      */
-    public function getMessages($chat_id)
+    public static function getMessages($chat_id)
     {
-        $query = Message::find('user.username')
+        $query = Message::find()
             ->with(['user'])
             ->where(['chat_id' => $chat_id])
             ->orderBy(['created_at' => SORT_DESC])

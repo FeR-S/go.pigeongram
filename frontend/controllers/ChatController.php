@@ -1,92 +1,59 @@
 <?php
 
-namespace app\controllers;
+namespace frontend\controllers;
 
-use common\models\Buddy;
 use common\models\Chat;
 use common\models\ChatMember;
+use common\models\Message;
 use Yii;
 use yii\helpers\Html;
 
 class ChatController extends \yii\web\Controller
 {
 
+    /**
+     * @return string
+     */
     public function actionCreateTheChat()
     {
         $chat = new Chat();
-        $buddies = new Buddy();
-        $chat_member = new ChatMember();
+        $redis = Yii::$app->redis;
 
         if (Yii::$app->request->isAjax) {
 
-            $create_new_chat = Yii::$app->request->post('create_new_chat');
+            $user_id_to = (int)Yii::$app->request->post('user_id');
 
-            if ($create_new_chat) {
+            if ($chat->load(Yii::$app->request->post())) {
 
-                $user_id_from = Yii::$app->user->id;
-                $form_data = Yii::$app->request->post('form_data');
-                $actual_form_data = [];
-                $actual_form_data['users_id'] = [];
+                $chat->created_at = date("Y-m-d H:i:s");
+                if ($chat->validate() and $chat->save()) {
 
-                foreach ($form_data as $value) {
-                    if ($value['name'] == '_csrf' || $value['name'] == 'create-the-chat' || $value['name'] == 'ChatMember[chat_members]') continue;
-                    if ($value['name'] == 'ChatMember[chat_members][]') {
-                        array_push($actual_form_data['users_id'], (int)$value['value']);
-                    } else {
-                        // �����������)) ������ ����� ��� ������))
-                        $actual_form_data[explode(']', explode('Chat[', $value['name'])[1])[0]] = $value['value'];
-                    }
-                }
-
-                array_push($actual_form_data['users_id'], $user_id_from);
-
-                // ���������� ������ � �������
-                $created_at = date("Y-m-d H:i:s");
-
-                $chat->title = $actual_form_data['title'];
-                $chat->description = $actual_form_data['description'];
-                $chat->created_at = $created_at;
-
-                $chat->save();
-                // ������� ���
-                $chat_id = $chat->getId();
-
-                // ����� �������
-                $chat_member->chat_members = $actual_form_data['users_id'];
-
-                for ($i = 0; $i < count($actual_form_data['users_id']); $i++) {
-                    if ($i > 0) {
+                    array_push($chat->_chat_members, Yii::$app->user->identity->getId());
+                    foreach ($chat->_chat_members as $_chat_member) {
                         $chat_member = new ChatMember();
-                        $chat_member->chat_members = $actual_form_data['users_id'];
+                        $chat_member->chat_id = $chat->id;
+                        $chat_member->created_at = $chat->created_at;
+                        $chat_member->user_id = (int)$_chat_member;
+
+                        $redis->sadd('user:' . $chat_member->user_id . ':chats', $chat->id);
+                        $chat_member->save();
                     }
 
-                    $chat_member->chat_id = $chat_id;
-                    $chat_member->created_at = $created_at;
-                    $chat_member->user_id = $chat_member->chat_members[$i];
-
-                    // ������� ����� ��������� id ������ ���� � redis
-                    $redis = Yii::$app->redis;
-                    $redis->sadd('user:' . $chat_member->user_id . ':chats', $chat_id);
-
-                    $chat_member->save();
+                    return json_encode([
+                        'chat_members' => $chat->_chat_members,
+                        'chat_id' => $chat->id
+                    ]);
                 }
 
-                return json_encode([
-                    'chat_members' => $actual_form_data['users_id'],
-                    'chat_id' => $chat_id
-                ]);
-
-            } else {
-                $user_id_to = (int)Yii::$app->request->post('user_id');
-                array_push($chat_member->chat_members, $user_id_to);
-
-                return $this->renderAjax('-get-create-new-chat-form', [
-                    'model' => $chat,
-                    'buddies' => $buddies->getBuddies()['arrayDataProvider'],
-                    'chat_member' => $chat_member,
-                    'user_id' => $user_id_to
-                ]);
             }
+
+            return $this->renderAjax('_create-new-chat-form', [
+                'model' => $chat,
+//                'buddies' => $buddies->getBuddies()['arrayDataProvider'],
+//                'chat_member' => $chat_member,
+                'user_id_current' => $user_id_to
+            ]);
+
         }
     }
 
@@ -238,21 +205,17 @@ class ChatController extends \yii\web\Controller
 
     public function actionGetCurrentChat()
     {
-        $message = new Message();
-        $chat = new Chat();
-        $current_user_id = Yii::$app->user->id;
-
         if (Yii::$app->request->isAjax) {
 
             $chat_id = Yii::$app->request->post('chat_id');
-            $messages = $message->getMessages($chat_id);
-            $chat_data = $chat::findOne($chat_id);
+            $messages = Message::getMessages($chat_id);
+            $chat_info = Chat::findOne($chat_id);
 
             return json_encode([
                 'view' => $this->renderAjax('-get-current-chat', [
-                    'chat_data' => $chat_data,
-                    'message' => $message,
-                    'current_user_id' => $current_user_id
+                    'chat_info' => $chat_info,
+                    'messages' => $messages,
+                    'current_user_id' => Yii::$app->user->identity->getId()
                 ]),
                 'messages' => $messages,
             ]);

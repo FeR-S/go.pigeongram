@@ -6,26 +6,22 @@
  * Time: 21:51
  */
 
-if (isset($model['chat'])) {
-	$chat_title = $model['chat']['title'];
-	$chat_description = $model['chat']['description'];
-	$chat_created_at = $model['chat']['created_at'];
-	$chat_id = $model['chat']['id'];
-}
-
 ?>
 
-<li chat-id="<?= $chat_id; ?>" class="list-item chat-item">
-	<a href="#">
-		<div class="user-icon-container"><div class="user-icon-inner"><i class="fa fa-envelope"></i></div></div>
-		<div class="item-info">
-			<div class="item-title"><?= $chat_title; ?><span class="new-message-label label label-primary pull-right">!</span></div>
-			<div class="item-description"><?= $chat_description; ?></div>
-		</div> 
-	</a>
+<li chat-id="<?php echo $model->id; ?>" class="list-item chat-item">
+    <a href="#">
+        <div class="user-icon-container">
+            <div class="user-icon-inner"><i class="fa fa-envelope"></i></div>
+        </div>
+        <div class="item-info">
+            <div class="item-title"><?php echo $model->title; ?><span
+                        class="new-message-label label label-primary pull-right">!</span></div>
+            <div class="item-description"><?php echo $model->description; ?></div>
+        </div>
+    </a>
 </li>
 
-<!--<li class="chat" chat-id="--><?//= $chat_id; ?><!--" style="    border-radius: 3px;">-->
+<!--<li class="chat" chat-id="--><? //= $chat_id; ?><!--" style="    border-radius: 3px;">-->
 <!--	<div class="user-sidebar-menu-link">-->
 <!--		<div class="media-left">-->
 <!--			<img class="media-object" data-src="holder.js/64x64" alt="64x64"-->
@@ -33,11 +29,11 @@ if (isset($model['chat'])) {
 <!--			     data-holder-rendered="true" style="width: 64px; height: 64px;">-->
 <!--		</div>-->
 <!--		<div class="part-body">-->
-<!--			<h4 class="media-heading">--><?//= $chat_title; ?><!--</h4>-->
+<!--			<h4 class="media-heading">--><? //= $chat_title; ?><!--</h4>-->
 <!---->
-<!--			<p style="font-size: 12px;">--><?//= $chat_description; ?><!--</p>-->
+<!--			<p style="font-size: 12px;">--><? //= $chat_description; ?><!--</p>-->
 <!---->
-<!--			<p style="font-size: 10px">--><?//= $chat_created_at; ?><!--</p>-->
+<!--			<p style="font-size: 10px">--><? //= $chat_created_at; ?><!--</p>-->
 <!---->
 <!--			<div class="btn-group chat-actions">-->
 <!--				<button type="button" class="btn btn-default dropdown-toggle btn-xs" data-toggle="dropdown"-->

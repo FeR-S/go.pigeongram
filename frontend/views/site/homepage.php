@@ -184,7 +184,7 @@ $this->title = 'My Yii Application';
 </div><!-- /.content-wrapper -->
 
 <?php Modal::begin([
-    'id' => 'create-new-chat-modal',
+    'id' => 'modal-' . \common\models\ActionsWithUser::ACTION_CREATE_THE_CHAT_ID,
     'header' => 'Create New Chat',
 //    'footer' => Html::button('Close', ['class' => 'btn btn-default', 'data-dismiss' => 'modal'])
 //        . PHP_EOL . Html::button('Add', ['class' => 'btn btn-primary', 'id' => 'this-modal-form-submit']),
@@ -197,8 +197,6 @@ $this->title = 'My Yii Application';
 <?php Modal::begin([
     'id' => 'edit-current-chat-form-modal',
     'header' => 'Edit Current Chat',
-//    'footer' => Html::button('Close', ['class' => 'btn btn-default', 'data-dismiss' => 'modal'])
-//        . PHP_EOL . Html::button('Add', ['class' => 'btn btn-primary', 'id' => 'this-modal-form-submit']),
 ]); ?>
 
 <div style="text-align: center; padding: 30px 0 50px"><img src="../images/ajax-loader.gif" alt=""></div>
@@ -215,4 +213,18 @@ $this->title = 'My Yii Application';
 
 <?php Modal::end(); ?>
 
+
+<?php
+
+$new_chat_id = \common\models\ActionsWithUser::ACTION_CREATE_THE_CHAT_ID;
+
+$this->registerJs(<<<JS
+
+var NewChatId = '#modal-$new_chat_id';
+
+JS
+    , \yii\web\View::POS_HEAD
+)
+
+?>
 

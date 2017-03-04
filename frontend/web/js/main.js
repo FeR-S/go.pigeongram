@@ -3,6 +3,9 @@
  */
 
 var ContextMenu = $('#context-menu');
+var section_Content = $('section.content');
+var CurrentChatId = '';
+var ChatContainer = $('#chat-container');
 
 function AjaxTime(action_url, data) {
     var promise = $.ajax({
@@ -17,6 +20,9 @@ function AjaxTime(action_url, data) {
     return promise;
 }
 
+function ajaxLoader(tag) {
+    tag.html('<div class="loader"><img src="../images/ajax-loader.gif"/></div>');
+}
 
 // Закрываем элемент по клику вне его области
 $(document).mouseup(function (e) { // событие клика по веб-документу
@@ -24,7 +30,7 @@ $(document).mouseup(function (e) { // событие клика по веб-до
     if (!current_block.is(e.target) // если клик был не по нашему блоку
         && current_block.has(e.target).length === 0) { // и не по его дочерним элементам
         current_block.hide(); // скрываем его
-    }  
+    }
 });
 
 // Закрываем элемент по клику вне его области
@@ -188,8 +194,8 @@ $(document).on('click', '[action-id]', function () {
                 'user_id': user_id
             };
 
-            AjaxTime(action_url, data).done(function (user_id_from) {
-                $('#create-new-chat-modal .modal-body').html(result);
+            AjaxTime(action_url, data).done(function (result) {
+                $(NewChatId + ' .modal-body').html(result);
             }).fail(function (request, status, error) {
                 console.log(status + ' - ' + error + request.responseText);
             });
@@ -236,4 +242,57 @@ $(document).on('click', '[action-id]', function () {
 
     ContextMenu.hide();
 
+});
+
+$(document).on('submit', '#create-the-chat', function (e) {
+    e.preventDefault();
+
+    var form_data = $(this).serializeArray(),
+        action_url = $(this).attr('action');
+
+    AjaxTime(action_url, form_data).done(function (result) {
+        // socket.emit('create-new-chat', result);
+        $(NewChatId).modal('hide');
+        $.pjax.reload({container: '#pjax-get-chats'});
+        // делаем активным первый чат в списке
+        // $('#pjax-get-chats ul li.chat').eq(0).addClass('active');
+    }).fail(function (request, status, error) {
+        console.log(status + ' - ' + error + request.responseText);
+    });
+
+});
+
+// обрабатываем закрытие модального окна с формой чата
+//todo: унифицировать ajax-loader
+$(NewChatId).on('hidden.bs.modal', function () {
+    $(this).find('.modal-body').html('<div style="text-align: center; padding: 30px 0 50px"><img src="../images/ajax-loader.gif" alt=""></div>');
+});
+
+// обрабатываем клик на чат
+$('#pjax-get-chats').on('click', '[chat-id]', function () {
+    var that = $(this);
+    var selected_chat_id = $(this).attr('chat-id');
+    var section_Content_Padding = parseInt(section_Content.css('paddingTop'));
+    var data = {
+        'chat_id': selected_chat_id
+    };
+    CurrentChatId = selected_chat_id;
+    if (!that.hasClass('active')) {
+        $('#pjax-get-chats > ul > li.chat-item').removeClass('active');
+        that.addClass('active');
+
+        AjaxTime('/chat/get-current-chat', data)
+            .beforeSend(function(){
+                ajaxLoader(ChatContainer);
+            })
+            .done(function (result) {
+                var data = JSON.parse(result);
+                ChatContainer.html(data.view);
+
+        }).fail(function (request, status, error) {
+            console.log(status + ' - ' + error + request.responseText);
+        });
+
+
+    }
 });

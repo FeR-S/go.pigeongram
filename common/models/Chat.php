@@ -18,6 +18,8 @@ class Chat extends \common\components\CacheActiveRecord
 {
     const PUBLIC_CHAT_ID = 0;
 
+    public $_chat_members;
+
     /**
      * @inheritdoc
      */
@@ -32,8 +34,9 @@ class Chat extends \common\components\CacheActiveRecord
     public function rules()
     {
         return [
-            [['created_at', 'title', 'description'], 'required'],
-            [['title', 'description'], 'string', 'max' => 255]
+            [['created_at', 'title', 'description', '_chat_members'], 'required'],
+            [['title', 'description'], 'string', 'max' => 255],
+            [['title', 'description'], 'trim']
         ];
     }
 
@@ -47,6 +50,7 @@ class Chat extends \common\components\CacheActiveRecord
             'created_at' => 'Created At',
             'title' => 'Title',
             'description' => 'Description',
+            '_chat_members' => 'Chat Members',
         ];
     }
 
